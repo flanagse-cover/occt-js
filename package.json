@@ -1,6 +1,6 @@
 {
   "name": "@tx-code/occt-js",
-  "version": "0.1.14",
+  "version": "0.2.0",
   "description": "OCCT CAD import via WebAssembly — read STEP/IGES/BREP files in the browser",
   "main": "dist/occt-js.js",
   "module": "dist/occt-js.mjs",

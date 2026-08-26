@@ -1,6 +1,6 @@
 # occt-js
 
-WebAssembly build of [OpenCASCADE Technology (OCCT)](https://dev.opencascade.org/) v7.9.3 for CAD import and triangulation. The canonical downstream path is the packaged Wasm carrier `@tx-code/occt-js`, optionally wrapped by the engine-agnostic adapter `@tx-code/occt-core`.
+WebAssembly build of [OpenCASCADE Technology (OCCT)](https://dev.opencascade.org/) v8.0.1 for CAD import and triangulation. The canonical downstream path is the packaged Wasm carrier `@tx-code/occt-js`, optionally wrapped by the engine-agnostic adapter `@tx-code/occt-core`.
 
 **[Live Demo](https://tx-code.github.io/occt-js/)** — drag and drop STEP/IGES/BREP files, face/edge/vertex picking, hover preview
 
@@ -406,7 +406,7 @@ git restore --source=HEAD -- dist/occt-js.d.ts
 ```
 
 The Windows build entrypoint fails early with a clear error if either prerequisite is missing:
-- `occt/src/Standard` from the `occt` git submodule
+- `occt/src/FoundationClasses/TKernel/Standard` from the `occt` git submodule
 - `build/wasm/emsdk/emsdk_env.bat` from `tools/setup_emscripten_win.bat`
 
 Windows build failures retain a log file at `build/wasm-build.log`. If a parallel build fails intermittently, retry with lower parallelism:

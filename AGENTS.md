@@ -4,7 +4,7 @@ This file is the primary repository-level guidance for coding agents working in 
 
 ## Project Overview
 
-`occt-js` is a WebAssembly build of OpenCASCADE Technology (OCCT) v7.9.3 for CAD import and triangulation.
+`occt-js` is a WebAssembly build of OpenCASCADE Technology (OCCT) v8.0.1 for CAD import and triangulation.
 
 The repository has three active surfaces:
 

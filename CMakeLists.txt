@@ -29,21 +29,27 @@ configure_file(
 
 # ---------------------------------------------------------------------------
 # Macro: AddOcctModule
-#   Collects all .cxx/.c sources from occt/src/<module> and adds the
-#   directory to the include path list.  Skips modules whose directory
-#   does not exist in the current OCCT checkout (prints a warning).
+#   Collects all .cxx/.c sources from occt/src/<Module>/<Toolkit>/<Package>
+#   and adds the directory to the include path list.  A package named here
+#   and absent from the checkout is always a bug, so it is fatal.
 # ---------------------------------------------------------------------------
 set(OcctSourceFolders)
 set(OcctIncludeDirs "${OcctGeneratedIncludeDir}")
 
-function(AddOcctModule moduleName)
-    set(_modDir "${CMAKE_CURRENT_SOURCE_DIR}/occt/src/${moduleName}")
-    if(NOT EXISTS "${_modDir}")
-        message(WARNING "OCCT module '${moduleName}' not found at ${_modDir} – skipping.")
-        return()
+function(ResolveOcctPackage moduleName outVar)
+    file(GLOB _modDirs "${CMAKE_CURRENT_SOURCE_DIR}/occt/src/*/*/${moduleName}")
+    list(LENGTH _modDirs _count)
+    if(NOT _count EQUAL 1)
+        message(FATAL_ERROR "OCCT package '${moduleName}' resolved to ${_count} directories under occt/src/*/*/ (expected 1).")
     endif()
-    list(APPEND OcctSourceFolders "occt/src/${moduleName}/*.c*")
-    list(APPEND OcctIncludeDirs   "occt/src/${moduleName}")
+    list(GET _modDirs 0 _modDir)
+    set(${outVar} "${_modDir}" PARENT_SCOPE)
+endfunction()
+
+function(AddOcctModule moduleName)
+    ResolveOcctPackage("${moduleName}" _modDir)
+    list(APPEND OcctSourceFolders "${_modDir}/*.c*")
+    list(APPEND OcctIncludeDirs   "${_modDir}")
     set(OcctSourceFolders ${OcctSourceFolders} PARENT_SCOPE)
     set(OcctIncludeDirs   ${OcctIncludeDirs}   PARENT_SCOPE)
 endfunction()
@@ -51,13 +57,13 @@ endfunction()
 # Header-only: add include path but do NOT compile .cxx files.
 # Use for modules needed only for type definitions referenced by other headers.
 function(AddOcctHeaders moduleName)
-    set(_modDir "${CMAKE_CURRENT_SOURCE_DIR}/occt/src/${moduleName}")
-    if(NOT EXISTS "${_modDir}")
-        return()
-    endif()
-    list(APPEND OcctIncludeDirs "occt/src/${moduleName}")
+    ResolveOcctPackage("${moduleName}" _modDir)
+    list(APPEND OcctIncludeDirs "${_modDir}")
     set(OcctIncludeDirs ${OcctIncludeDirs} PARENT_SCOPE)
 endfunction()
+
+# 8.0 relocated the TColgp/TColStd/TopTools/TDF collection typedefs here.
+list(APPEND OcctIncludeDirs "${CMAKE_CURRENT_SOURCE_DIR}/occt/src/Deprecated/NCollectionAliases")
 
 # ===========================================================================
 #  OCCT Modules
@@ -87,6 +93,13 @@ AddOcctModule(TShort)
 AddOcctModule(gp)
 AddOcctModule(gce)
 AddOcctModule(math)
+AddOcctModule(MathRoot)
+AddOcctModule(MathSys)
+AddOcctModule(MathLin)
+AddOcctModule(MathPoly)
+AddOcctModule(MathUtils)
+AddOcctModule(MathInteg)
+AddOcctModule(MathOpt)
 AddOcctModule(Precision)
 AddOcctModule(ElCLib)
 AddOcctModule(ElSLib)
@@ -99,7 +112,9 @@ AddOcctModule(GeomAbs)
 AddOcctModule(GeomAdaptor)
 AddOcctModule(GeomAPI)
 AddOcctModule(GeomConvert)
-AddOcctModule(GeomEvaluator)
+AddOcctModule(GeomEval)
+AddOcctModule(GeomGridEval)
+AddOcctModule(GeomHash)
 AddOcctModule(GeomFill)
 AddOcctModule(GeomInt)
 AddOcctModule(GeomLib)
@@ -113,18 +128,16 @@ AddOcctModule(Adaptor3d)
 AddOcctModule(Geom2dAdaptor)
 AddOcctModule(Geom2dAPI)
 AddOcctModule(Geom2dConvert)
-AddOcctModule(Geom2dEvaluator)
+AddOcctModule(Geom2dEval)
+AddOcctModule(Geom2dGridEval)
+AddOcctModule(Geom2dHash)
 AddOcctModule(Geom2dGcc)
 AddOcctModule(Geom2dHatch)
 AddOcctModule(Geom2dInt)
-AddOcctModule(Geom2dLProp)
 AddOcctModule(GC)
 AddOcctModule(GCE2d)
 AddOcctModule(GCPnts)
 AddOcctModule(GProp)
-AddOcctModule(TColgp)
-AddOcctModule(TColGeom)
-AddOcctModule(TColGeom2d)
 AddOcctModule(Convert)
 AddOcctModule(CPnts)
 AddOcctModule(CSLib)
@@ -139,16 +152,17 @@ AddOcctModule(Plate)
 AddOcctModule(NLPlate)
 AddOcctModule(Bnd)
 AddOcctModule(BndLib)
+AddOcctModule(GeomBndLib)
 AddOcctModule(BVH)
 AddOcctModule(FEmTool)
 AddOcctModule(LProp)
-AddOcctModule(LProp3d)
 AddOcctModule(ProjLib)
 AddOcctModule(Hermit)
 AddOcctModule(Law)
 AddOcctModule(Intrv)
 AddOcctModule(LocalAnalysis)
 AddOcctModule(Extrema)
+AddOcctModule(ExtremaPC)
 
 # --- Intersections ---
 AddOcctModule(IntAna)
@@ -285,6 +299,7 @@ AddOcctModule(StepKinematics)
 AddOcctModule(StepSelect)
 AddOcctModule(StepToGeom)
 AddOcctModule(StepToTopoDS)
+AddOcctModule(StepTidy)
 AddOcctModule(TopoDSToStep)
 # GeomToIGES / Geom2dToIGES: headers only (see IGES section)
 
@@ -462,8 +477,6 @@ AddOcctModule(FlexLexer)
 # --- Resource files (message/step) ---
 AddOcctModule(SHMessage)
 AddOcctModule(XSMessage)
-AddOcctModule(XSTEPResource)
-AddOcctModule(StdResource)
 
 # ===========================================================================
 #  Glob all collected source files
@@ -484,26 +497,31 @@ source_group("OCCT"    FILES ${OcctSourceFiles})
 # ===========================================================================
 #  Target
 # ===========================================================================
-if(${EMSCRIPTEN})
-    add_executable(occt-js ${OcctJSSourceFiles} ${OcctSourceFiles})
+# The kernel is an archive so the linker pulls only the members that resolve
+# an undefined symbol, instead of linking all ~3000 OCCT objects.
+add_library(occt-kernel STATIC ${OcctSourceFiles})
+target_compile_options(occt-kernel PUBLIC -DOCCT_NO_PLUGINS -DOCCT_NO_DEPRECATED)
+target_include_directories(occt-kernel PUBLIC ${OcctIncludeDirs})
 
-    target_compile_options(occt-js PUBLIC "$<$<CONFIG:Debug>:-gsource-map>")
-    target_compile_options(occt-js PUBLIC "$<$<CONFIG:Release>:-Oz>")
-    target_compile_options(occt-js PUBLIC -fexceptions)
-    target_compile_options(occt-js PUBLIC -fwasm-exceptions)
+if(${EMSCRIPTEN})
+    add_executable(occt-js ${OcctJSSourceFiles})
+
+    target_compile_options(occt-kernel PUBLIC "$<$<CONFIG:Debug>:-gsource-map>")
+    target_compile_options(occt-kernel PUBLIC "$<$<CONFIG:Release>:-Oz>")
+    target_compile_options(occt-kernel PUBLIC -fwasm-exceptions)
 
     target_link_options(occt-js PUBLIC -sMODULARIZE=1)
     target_link_options(occt-js PUBLIC -sEXPORT_NAME='OcctJS')
     target_link_options(occt-js PUBLIC -sSTACK_SIZE=10MB)
-    target_link_options(occt-js PUBLIC -sALLOW_MEMORY_GROWTH=1 --no-heap-copy)
+    target_link_options(occt-js PUBLIC -sALLOW_MEMORY_GROWTH=1)
     target_link_options(occt-js PUBLIC -fwasm-exceptions)
     target_link_options(occt-js PUBLIC --bind)
 else()
-    add_library(occt-js ${OcctJSSourceFiles} ${OcctSourceFiles})
+    add_library(occt-js ${OcctJSSourceFiles})
 endif()
 
-target_compile_options(occt-js PUBLIC -DOCCT_NO_PLUGINS)
-target_include_directories(occt-js PUBLIC ${OcctIncludeDirs} ${OcctJSSrcDir})
+target_link_libraries(occt-js PRIVATE occt-kernel)
+target_include_directories(occt-js PUBLIC ${OcctJSSrcDir})
 
 # Output into dist/
 set_target_properties(occt-js PROPERTIES

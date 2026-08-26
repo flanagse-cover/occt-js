@@ -32,7 +32,7 @@
 ## Frameworks
 
 **Core:**
-- OpenCASCADE Technology (OCCT) 7.9.3 - the CAD kernel is vendored as the `occt/` git submodule declared in `.gitmodules` and compiled through `CMakeLists.txt`.
+- OpenCASCADE Technology (OCCT) 8.0.1 - the CAD kernel is vendored as the `occt/` git submodule declared in `.gitmodules` and compiled through `CMakeLists.txt`.
 - Emscripten Embind - the JS bridge is implemented in `src/js-interface.cpp`, with `--bind`, `-sMODULARIZE=1`, and `-sEXPORT_NAME='OcctJS'` configured in `CMakeLists.txt`.
 - React 18.3.1 - the viewer app is implemented in `demo/src/main.jsx`, `demo/src/App.jsx`, and `demo/package.json`.
 - Babylon.js 9.0.0 - rendering/runtime integration lives in `demo/src/lib/babylon-runtime.js`, `packages/occt-babylon-loader/src/*.js`, and `packages/occt-babylon-viewer/src/*.js`.

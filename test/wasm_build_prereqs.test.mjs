@@ -13,8 +13,8 @@ import {
 } from "../tools/check_wasm_prereqs.mjs";
 
 test("createMissingOcctSubmoduleError explains how to initialize the OCCT submodule", () => {
-  const error = createMissingOcctSubmoduleError("E:/repo/occt/src/Standard");
-  assert.match(error.message, /occt\/src\/Standard/);
+  const error = createMissingOcctSubmoduleError("E:/repo/occt/src/FoundationClasses/TKernel/Standard");
+  assert.match(error.message, /occt\/src\/FoundationClasses\/TKernel\/Standard/);
   assert.match(error.message, /git submodule update --init --recursive occt/);
 });
 
@@ -40,7 +40,7 @@ test("assertOcctSubmodulePresent fails when occt sources are missing", () => {
 
 test("assertWindowsEmsdkPresent fails when the local emsdk is missing", () => {
   const repoRoot = mkdtempSync(path.join(tmpdir(), "occt-js-prereqs-"));
-  mkdirSync(path.join(repoRoot, "occt", "src", "Standard"), { recursive: true });
+  mkdirSync(path.join(repoRoot, "occt", "src", "FoundationClasses", "TKernel", "Standard"), { recursive: true });
   assert.throws(
     () => assertWindowsEmsdkPresent(repoRoot),
     /tools\\setup_emscripten_win\.bat/

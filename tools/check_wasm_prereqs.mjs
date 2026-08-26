@@ -7,7 +7,7 @@ export function resolveRepoRoot(defaultPath = fileURLToPath(new URL("../", impor
 }
 
 export function resolveOcctSourceMarker(repoRoot = resolveRepoRoot()) {
-  return path.join(repoRoot, "occt", "src", "Standard");
+  return path.join(repoRoot, "occt", "src", "FoundationClasses", "TKernel", "Standard");
 }
 
 export function resolveWindowsEmsdkMarker(repoRoot = resolveRepoRoot()) {

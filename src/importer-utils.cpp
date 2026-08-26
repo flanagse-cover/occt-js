@@ -18,7 +18,10 @@
 #include <TopoDS_Edge.hxx>
 #include <Poly_PolygonOnTriangulation.hxx>
 #include <Poly_Polygon3D.hxx>
+#include <TColStd_Array1OfInteger.hxx>
+#include <TColgp_Array1OfPnt.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
+#include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopExp.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <algorithm>
@@ -161,6 +164,9 @@ OcctMeshData ExtractMeshFromShape(const TopoDS_Shape& shape)
     TopExp::MapShapes(shape, TopAbs_EDGE, edgeMap);
     TopExp::MapShapes(shape, TopAbs_VERTEX, vertexMap);
 
+    TopTools_IndexedDataMapOfShapeListOfShape edgeToFaces;
+    TopExp::MapShapesAndAncestors(shape, TopAbs_EDGE, TopAbs_FACE, edgeToFaces);
+
     // Phase 1: Extract faces
     for (int fi = 1; fi <= faceMap.Extent(); ++fi) {
         const TopoDS_Face& face = TopoDS::Face(faceMap(fi));
@@ -186,19 +192,14 @@ OcctMeshData ExtractMeshFromShape(const TopoDS_Shape& shape)
         OcctEdgeTopoData edgeData;
         edgeData.id = ei;
 
-        for (int fi = 1; fi <= faceMap.Extent(); ++fi) {
-            const TopoDS_Face& face = TopoDS::Face(faceMap(fi));
-            bool edgeOnFace = false;
-            for (TopExp_Explorer ex(face, TopAbs_EDGE); ex.More(); ex.Next()) {
-                if (edgeMap.FindIndex(ex.Current()) == ei) {
-                    edgeOnFace = true;
-                    break;
-                }
-            }
-            if (!edgeOnFace) continue;
-
-            edgeData.ownerFaceIds.push_back(fi);
+        for (const TopoDS_Shape& ownerFace : edgeToFaces.FindFromKey(edge)) {
+            edgeData.ownerFaceIds.push_back(faceMap.FindIndex(ownerFace));
         }
+        // The ancestor map does not dedupe, so a seam edge lists its face twice.
+        std::sort(edgeData.ownerFaceIds.begin(), edgeData.ownerFaceIds.end());
+        edgeData.ownerFaceIds.erase(
+            std::unique(edgeData.ownerFaceIds.begin(), edgeData.ownerFaceIds.end()),
+            edgeData.ownerFaceIds.end());
 
         if (BRep_Tool::Degenerated(edge)) {
             edgeData.isFreeEdge = edgeData.ownerFaceIds.empty();
